@@ -1,0 +1,79 @@
+name: Build SAFI TV+ APK (free)
+
+# Controlled builds only:
+# - Run manually from the Actions tab, OR
+# - Push a version tag such as v2.0.0.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Sync latest web UI into the app
+        run: bash sync-web.sh
+
+      - name: Prepare release signing key (optional)
+        id: signing
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ] && [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && [ -n "$ANDROID_KEY_ALIAS" ] && [ -n "$ANDROID_KEY_PASSWORD" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/safi-release.jks"
+            {
+              echo "SAFI_KEYSTORE_FILE=$RUNNER_TEMP/safi-release.jks"
+              echo "SAFI_KEYSTORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD"
+              echo "SAFI_KEY_ALIAS=$ANDROID_KEY_ALIAS"
+              echo "SAFI_KEY_PASSWORD=$ANDROID_KEY_PASSWORD"
+              echo "signed=true"
+            } >> "$GITHUB_ENV"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No release signing secrets configured; building a debug APK for testing only."
+          fi
+
+      - name: Build signed release APK + AAB
+        if: steps.signing.outputs.signed == 'true'
+        working-directory: android-tv
+        run: gradle :app:assembleRelease :app:bundleRelease --stacktrace
+
+      - name: Build debug APK (testing only)
+        if: steps.signing.outputs.signed != 'true'
+        working-directory: android-tv
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Generate SHA-256 checksums
+        shell: bash
+        run: |
+          mkdir -p release-artifacts
+          find android-tv/app/build/outputs -type f \( -name '*.apk' -o -name '*.aab' \) -print0 |
+            while IFS= read -r -d '' f; do cp "$f" release-artifacts/; done
+          cd release-artifacts
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Upload APK/AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: SafiTV-APK
+          if-no-files-found: error
+          path: release-artifacts/
