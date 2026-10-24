@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https: http:; connect-src 'self' https: http: ws: wss:; frame-src https:; worker-src 'self' blob:; child-src https: blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>SAFI TV+ — Smart TV Box</title>
+<link rel="stylesheet" href="css/tv.css?v=2.0.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23e50914'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>S</text></svg>">
+</head>
+<body>
+<div id="splash">
+  <div class="logo-big">SAFI <span>TV+</span></div>
+  <p>Smart Box • Kenya 🇰🇪</p>
+  <div class="loader"><i></i></div>
+  <div id="bootHelp" style="display:none;max-width:620px;margin-top:26px;text-align:center;color:#9fb0c9;font-size:17px;line-height:1.55;padding:0 20px">
+    Still loading? Your browser may be holding an old cached copy.<br>
+    <button onclick="safiHardReload()" style="margin-top:14px;padding:13px 24px;border-radius:99px;border:0;background:#fff;color:#111;font-weight:900;font-size:17px;cursor:pointer">↻ Clear cache &amp; reload SAFI TV+</button>
+  </div>
+  <noscript><p style="color:#fff;margin-top:20px">SAFI TV+ needs JavaScript enabled.</p></noscript>
+</div>
+<script>
+window.__safiBootErrors=[];
+window.addEventListener('error',function(e){
+  try{
+    window.__safiBootErrors.push(String(e.message||'Script error'));
+    var c=document.getElementById('content'), h=document.getElementById('bootHelp');
+    if(h && (!c || !c.innerHTML.trim())) h.style.display='block';
+  }catch(_){ }
+},true);
+window.addEventListener('unhandledrejection',function(e){
+  try{ window.__safiBootErrors.push('Promise: '+String(e.reason&&e.reason.message||e.reason||'')); }catch(_){ }
+});
+function safiHardReload(){
+  var done=function(){ location.reload(); };
+  var jobs=[];
+  try{ if('serviceWorker' in navigator) jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); }catch(e){}
+  try{ if(window.caches) jobs.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }catch(e){}
+  Promise.allSettled(jobs).then(done); setTimeout(done,2500);
+}
+window.__safiRemoveSplash=function(){
+  var s=document.getElementById('splash'); if(!s) return;
+  s.classList.add('hide');
+  setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); },650);
+};
+var __safiBootWatch=setInterval(function(){
+  var c=document.getElementById('content');
+  if(c && c.innerHTML.trim()){ clearInterval(__safiBootWatch); window.__safiRemoveSplash(); }
+},250);
+setTimeout(function(){
+  var c=document.getElementById('content');
+  if(c && !c.innerHTML.trim()){ var h=document.getElementById('bootHelp'); if(h) h.style.display='block'; }
+  else if(c && c.innerHTML.trim()){ window.__safiRemoveSplash(); }
+},6000);
+</script>
+
+<div id="app">
+  <!-- Google TV-style top bar: brand • pill navigation • quick icons • clock -->
+  <header id="topnav">
+    <div class="navcluster" aria-label="Quick navigation">
+      <button class="iconbtn focusable" id="navPrev" title="Previous screen">←</button>
+      <button class="iconbtn focusable" id="navHome" title="Home">⌂</button>
+      <button class="iconbtn focusable" id="navNext" title="Next screen">→</button>
+    </div>
+    <div class="brandchip"><span class="avatar">S</span><span class="bname">SAFI <b>TV+</b></span></div>
+    <button class="search-pill focusable" data-topsearch aria-label="Search"><span>⌕</span><span>Search</span></button>
+    <nav class="pillnav">
+      <button class="navbtn focusable active" data-nav="home">Home</button>
+      <button class="navbtn focusable" data-nav="live">Live</button>
+      <button class="navbtn focusable" data-nav="radio">Radio</button>
+      <button class="navbtn focusable" data-nav="allchannels">Channels</button>
+      <button class="navbtn focusable" data-nav="movies">Movies</button>
+      <button class="navbtn focusable" data-nav="kids">Kids</button>
+      <button class="navbtn focusable" data-nav="apps">Apps</button>
+    </nav>
+    <div class="topicons">
+      <button class="iconbtn focusable" data-navicon="favourites" title="My Favourites">★</button>
+      <button class="iconbtn focusable" data-navicon="offline" title="Offline / USB">⬇</button>
+      <button class="iconbtn focusable" data-navicon="autoscan" title="Auto-Scan new channels">🛰</button>
+      <button class="iconbtn focusable" data-navicon="help" title="Help &amp; Guidance">?</button>
+      <button class="iconbtn focusable gear" data-navicon="settings" title="Settings">⚙</button>
+      <button class="iconbtn focusable danger" data-exitapp title="Exit SAFI TV+">⏻</button>
+    </div>
+    <div id="clockbox"><div id="clock">--:--</div><div class="cbrand">SAFI TV+ <span id="date"></span></div><div id="netBadge">🟢 Online</div></div>
+  </header>
+
+  <main id="main">
+    <div id="content"></div>
+  </main>
+</div>
+
+<div class="hintbar">🎮 Remote: <b>← ↑ → ↓</b> Move &nbsp;•&nbsp; <b>OK</b> Select &nbsp;•&nbsp; <b>Back</b> Back &nbsp;•&nbsp; <b>Number keys</b> Jump to channel &nbsp;•&nbsp; <b>F</b> ★ &nbsp;•&nbsp; Player: <b>M</b> Mirror/Source &nbsp;•&nbsp; <b>CH+/CH−</b> Zap &nbsp;•&nbsp; SAFI TV+ v2.0 — everything plays inside this app 🔒</div>
+
+<!-- Player -->
+<div id="playerWrap">
+  <video id="video" playsinline></video>
+  <!-- Embedded live player for stations with no HLS feed (Citizen/NTV/KTN/KBC/TV47…).
+       sandbox has NO allow-popups and NO allow-top-navigation:
+       it physically cannot open YouTube, a browser tab, or another app. -->
+  <iframe id="embedFrame" title="Live player (inside SAFI TV+)"
+    sandbox="allow-scripts allow-same-origin allow-presentation"
+    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+    allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <div id="radioVisual" aria-hidden="true">
+    <div class="radioDisc"><span id="radioInitials">📻</span></div>
+    <div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div id="radioMeta"><b>Radio</b><span>LIVE RADIO</span></div>
+  </div>
+  <div id="playerMsg"></div>
+  <div id="playerUI">
+    <div><div id="pTitle"></div><div id="pSub"></div><div><span id="pSource" class="psource">Connecting…</span></div></div>
+    <div>
+      <div id="ptime">● LIVE</div>
+      <div id="progress"><i></i></div>
+      <div class="pcontrols">
+        <button class="pbtn focusable" id="btnBack">← Back</button>
+        <button class="pbtn focusable" id="btnHomePlayer">⌂ Home</button>
+        <button class="pbtn focusable" id="btnPrev">⏮ Prev Channel</button>
+        <button class="pbtn focusable" id="btnPlay">⏸ Pause</button>
+        <button class="pbtn focusable" id="btnNext">Next Channel ⏭</button>
+        <button class="pbtn focusable" id="btnMirror">🔁 Source 1/1</button>
+        <button class="pbtn focusable" id="btnHelp">❔ Fix / Help</button>
+        <button class="pbtn focusable" id="btnFav">☆ Favourite</button>
+        <button class="pbtn focusable" id="btnRec">⏺ Record</button>
+        <button class="pbtn focusable" id="btnSave">⬇ Save Offline</button>
+        <button class="pbtn focusable" id="btnFull">⛶ Fullscreen</button>
+        <button class="pbtn focusable" id="btnExitPlayer">⏻ Exit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="exitScreen" class="hidden" role="dialog" aria-label="Exit SAFI TV+">
+  <div class="exitCard">
+    <div class="logo-big">SAFI <span>TV+</span></div>
+    <p>Asante kwa kutumia SAFI TV+.<br>In a browser, you can now close this tab. In the Android TV app, Exit closes SAFI TV+.</p>
+    <div class="exitBtns">
+      <button class="btn red focusable" id="btnReturnFromExit">← Previous / Return</button>
+      <button class="btn ghost focusable" id="btnCloseTab">⏻ Close Tab</button>
+    </div>
+  </div>
+</div>
+
+<div id="numOsd">CH _</div>
+<div id="toast"></div>
+<script src="js/hls.min.js?v=2.0.0"></script>
+<script src="js/data.js?v=2.0.0"></script>
+<script src="js/app.js?v=2.0.0"></script>
+</body>
+</html>
